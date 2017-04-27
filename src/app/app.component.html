@@ -1,3 +1,24 @@
-<h1>
-  {{title}}
-</h1>
+<div>
+  <label>
+    startDate
+    <input type="datetime-local" [(ngModel)]="startDate">
+  </label>
+  <label>
+    startDate
+    <input type="datetime-local" [(ngModel)]="startDate">
+  </label>
+  <button (click)="getFromPast()">getFromPast</button>
+</div>
+<hr>
+<div>
+  <label>
+    startDate
+    <input type="datetime-local" [(ngModel)]="startRangeDate">
+  </label>
+  <label>
+    startDate
+    <input type="datetime-local" [(ngModel)]="endRangeDate">
+  </label>
+  <button (click)="getFromDateRange()">getFromDateRange</button>
+</div>
+<pre *ngFor="let item of log">{{item}}</pre>

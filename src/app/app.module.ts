@@ -5,6 +5,7 @@ import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
 import {BetsService} from "./models/bets/bets.service";
+import {CoreModule} from "./core/core.module";
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import {BetsService} from "./models/bets/bets.service";
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
+    CoreModule
   ],
   providers: [BetsService],
   bootstrap: [AppComponent]

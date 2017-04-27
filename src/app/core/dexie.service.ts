@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {Dexie} from 'dexie';
+import Dexie from 'dexie';
 
 @Injectable()
 export class DexieService extends Dexie {
@@ -8,7 +8,7 @@ export class DexieService extends Dexie {
     super('SPMD');
 
     this.version(1).stores({
-      bets: '++id'
+      bets: '++id,triggerAt,createdAt,endAt,status,reward,note'
     });
   }
 
