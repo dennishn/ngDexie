@@ -1,13 +1,17 @@
 <div>
   <label>
-    startDate
-    <input type="datetime-local" [(ngModel)]="startDate">
+    dateRange
+    <select [(ngModel)]="dateRange">
+      <option value="year">year</option>
+      <option value="month">month</option>
+      <option value="week">week</option>
+    </select>
   </label>
   <label>
     startDate
     <input type="datetime-local" [(ngModel)]="startDate">
   </label>
-  <button (click)="getFromPast()">getFromPast</button>
+  <button (click)="getFromPastRange()">getFromPastRange</button>
 </div>
 <hr>
 <div>
@@ -21,4 +25,43 @@
   </label>
   <button (click)="getFromDateRange()">getFromDateRange</button>
 </div>
-<pre *ngFor="let item of log">{{item}}</pre>
+<hr>
+<div>
+  <label>
+    dateRange
+    <select [(ngModel)]="dateRangeSuper">
+      <option value="year">year</option>
+      <option value="month">month</option>
+      <option value="week">week</option>
+    </select>
+  </label>
+  <label>
+    status
+    <select [(ngModel)]="statusSuper">
+      <option value="0">lost</option>
+      <option value="1">awaiting</option>
+      <option value="2">won</option>
+    </select>
+  </label>
+  <button (click)="getAllBetsByStatusFromPastRange()">getAllBetsByTypeFromPastRange</button>
+</div>
+<hr/>
+<div>
+  <label>
+    status
+    <select [(ngModel)]="statusUberSuper">
+      <option value="0">lost</option>
+      <option value="1">awaiting</option>
+      <option value="2">won</option>
+    </select>
+  </label>
+  <button (click)="getAllBetsByStatus()">getAllBetsByStatus</button>
+</div>
+<div style="clear: both;">
+  <div style="width: 50%; float: left;">
+    <pre *ngFor="let item of log">{{item}}</pre>
+  </div>
+  <div style="width: 50%; float: left;">
+    <pre *ngFor="let item of items">{{item | json}}</pre>
+  </div>
+</div>
