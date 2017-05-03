@@ -38,30 +38,79 @@
   <label>
     status
     <select [(ngModel)]="statusSuper">
-      <option value="0">lost</option>
-      <option value="1">awaiting</option>
-      <option value="2">won</option>
+      <option [value]="statusOptions.Lost">lost</option>
+      <option [value]="statusOptions.Awaiting">awaiting</option>
+      <option [value]="statusOptions.Won">won</option>
     </select>
   </label>
-  <button (click)="getAllBetsByStatusFromPastRange()">getAllBetsByTypeFromPastRange</button>
+  <button (click)="getAllByStatusFromPastRange()">getAllBetsByTypeFromPastRange</button>
 </div>
 <hr/>
 <div>
   <label>
     status
     <select [(ngModel)]="statusUberSuper">
-      <option value="0">lost</option>
-      <option value="1">awaiting</option>
-      <option value="2">won</option>
+      <option [value]="statusOptions.Lost">lost</option>
+      <option [value]="statusOptions.Awaiting">awaiting</option>
+      <option [value]="statusOptions.Won">won</option>
     </select>
   </label>
-  <button (click)="getAllBetsByStatus()">getAllBetsByStatus</button>
+  <button (click)="getAllByStatus()">getAllBetsByStatus</button>
+</div>
+<hr>
+<div>
+  <form [formGroup]="betForm" (ngSubmit)="createBet(betForm.value, betForm.valid)">
+    <label>
+      stake
+      <input type="number" formControlName="stake">
+    </label>
+    <label>
+      note
+      <input type="text" formControlName="note">
+    </label>
+    <label>
+      status
+      <select formControlName="status">
+        <option [value]="statusOptions.Lost">lost</option>
+        <option [value]="statusOptions.Awaiting">awaiting</option>
+        <option [value]="statusOptions.Won">won</option>
+      </select>
+    </label>
+    <div *ngIf="betForm.get('status').value === statusOptions.Awaiting">
+      <label>
+        settles
+        <input type="datetime-local" formControlName="settles">
+      </label>
+      <label>
+        dont remind
+        <input type="checkbox" formControlName="notify">
+      </label>
+    </div>
+    <button [disabled]="betForm.invalid" type="submit">Create</button>
+  </form>
+</div>
+<hr>
+<div>
+  <label>
+    id
+    <input type="number" [(ngModel)]="getBetId">
+  </label>
+  <button (click)="getOne()">get one by id</button>
+  <button (click)="getAll()">get all</button>
+  <button (click)="update()">update</button>
+  <button (click)="remove()">remove</button>
+</div>
+<hr>
+<div>
+  <button (click)="getInPlayAmount()">get sum of awaiting bets</button>
+  <button (click)="getBalance()">get balance in range</button>
+  <button (click)="hasAwaiting()">has Awaiting</button>
 </div>
 <div style="clear: both;">
   <div style="width: 50%; float: left;">
-    <pre *ngFor="let item of log">{{item}}</pre>
+    <pre style="width: 100%; overflow: auto;" *ngFor="let item of log">{{item}}</pre>
   </div>
   <div style="width: 50%; float: left;">
-    <pre *ngFor="let item of items">{{item | json}}</pre>
+    <pre style="width: 100%; overflow: auto;" *ngFor="let item of items">{{item | json}}</pre>
   </div>
 </div>

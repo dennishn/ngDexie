@@ -3,7 +3,7 @@ import Dexie from 'dexie';
 import * as moment from 'moment';
 
 import {DexieService} from '../../core/dexie.service';
-import {IBet, Bet} from "./bet";
+import {IBet, Bet, BetStatus} from "./bet";
 
 import {BetMockFactory} from './bet.mocking';
 import {environment} from "../../../environments/environment";
@@ -11,15 +11,11 @@ import {environment} from "../../../environments/environment";
 @Injectable()
 export class BetsService {
 
-  // TODO
-  /*
-      The "types": 'year' | 'month' | 'week' and 0 | 1 | 2 should be expressed as a Type, and not as using the | symbol - look at moment...
-   */
-
   private table: Dexie.Table<IBet, number>;
 
   constructor(private dexieService: DexieService) {
     this.table = this.dexieService.table('bets');
+
     // Map Table entries to classes <3
     this.table.mapToClass(Bet);
 
@@ -38,29 +34,27 @@ export class BetsService {
     }
   }
 
-  public getAll() {
+  public getAll(): Promise<Bet[]> {
     return this.table.toArray();
   }
 
-  public add(data) {
+  public getOne(id: number): Promise<Bet> {
+    return this.table.where('id').equals(id).first();
+  }
+
+  public add(data: Bet): Promise<number> {
     return this.table.add(data);
   }
 
-  public update(id, data) {
+  public update(id: number, data: IBet): Promise<Bet> {
     return this.table.update(id, data);
   }
 
-  public remove(id) {
-    return this.table.delete(id);
+  public remove(id: number): Promise<void> {
+    return this.table.where('id').equals(id).delete();
   }
 
-  /**
-   * Gets all Bets from the first entry in DB up until the startDate.
-   * If the startDate argument is not supplied, it will use todays date.
-   * @param startDate
-   * @returns {Dexie.Promise<TResult>}
-   */
-  public getFromPast(startDate?: number): Promise<IBet[]> {
+  public getFromPast(startDate?: number): Promise<Bet[]> {
     const s = this.getStartDate(startDate);
 
     return this.table.toCollection().first().then((bet: Bet) => {
@@ -70,45 +64,63 @@ export class BetsService {
     });
   }
 
-  /**
-   * Gets all Bets from the startDate and backwards in a predefined range (year, month or week).
-   * If the startDate argument is not supplied, it will use todays date.
-   * @param dateRange
-   * @param startDate
-   * @returns {Promise<Array<IBet>>}
-   */
-  public getFromPastRange(dateRange: 'year' | 'month' | 'week', startDate?: number): Promise<IBet[]> {
+  public getFromPastRange(dateRange: 'year' | 'month' | 'week', startDate?: number): Promise<Bet[]> {
     const s = this.getStartDate(startDate);
     const e = s.clone().subtract(1, dateRange);
+
     return this.table.where('endAt').between(e.unix(), s.unix(), true, true).toArray();
   }
 
-  /**
-   * Gets all Bets in a range from startDate until endDate.
-   * @param startDate
-   * @param endDate
-   * @returns {Promise<Array<IBet>>}
-   */
-  public getFromDateRange(startDate: number, endDate: number): Promise<IBet[]> {
+  public getFromDateRange(startDate: number, endDate: number): Promise<Bet[]> {
     const s = moment.unix(startDate).unix();
     const e = moment.unix(endDate).unix();
 
     return this.table.where('endAt').between(s, e, true, true).toArray();
   }
 
-  public getAllBetsByStatus(status: 0 | 1 | 2): Promise<IBet[]> {
+  public getAllByStatus(status: string): Promise<Bet[]> {
     return this.table.where('status').equals(status).toArray();
   }
 
-  public getAllBetsByStatusFromPastRange(dateRange: 'year' | 'month' | 'week', status: 0 | 1 | 2, startDate?: number): Promise<IBet[]> {
+  public getAllByStatusFromPastRange(dateRange: 'year' | 'month' | 'week', status: string, startDate?: number): Promise<Bet[]> {
     return this.getFromPastRange(dateRange, startDate).then((collection) => {
       return this.filterCollectionByStatus(collection, status);
     });
   }
-  public filterCollectionByStatus(collection: IBet[], status: 0 | 1 | 2): Promise<IBet[]> {
-    return new Promise((resolve, reject) => {
+
+  public getInPlayAmount(): Promise<number> {
+    let sum = 0;
+
+    return this.table.where('status').equals(BetStatus.Awaiting).toArray().then((bets: Bet[]) => {
+      bets.forEach((bet: Bet) => sum += bet.stake);
+      return sum;
+    });
+  }
+
+  public getBalance(dateRange: 'year' | 'month' | 'week'): Promise<number> {
+    let sum = 0;
+
+    return this.getAllByStatus(BetStatus.Awaiting).then((bets: Bet[]) => {
+      bets.forEach(bet => sum += bet.stake);
+      return this.getAllByStatusFromPastRange(dateRange, BetStatus.Won);
+    }).then((bets: Bet[]) => {
+      bets.forEach(bet => sum += bet.stake);
+      return this.getAllByStatusFromPastRange(dateRange, BetStatus.Lost);
+    }).then((bets: Bet[]) => {
+      bets.forEach(bet => sum += bet.stake);
+      return sum;
+    });
+  }
+
+  public hasAwaiting(): Promise<boolean> {
+    return this.getAllByStatus(BetStatus.Awaiting).then((bets: Bet[]) => {
+      return bets.length > 0;
+    });
+  }
+
+  public filterCollectionByStatus(collection: IBet[], status: string): Promise<Bet[]> {
+    return new Promise((resolve) => {
       return resolve(collection.filter((item) => {
-        console.log(status, item.status);
         return item.status === status;
       }));
     });

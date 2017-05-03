@@ -8,7 +8,7 @@ export class DexieService extends Dexie {
     super('SPMD');
 
     this.version(1).stores({
-      bets: '++id,triggerAt,createdAt,endAt,status,reward,note'
+      bets: '++id,triggerAt,createdAt,endAt,status,stake,note'
     });
   }
 

@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {BetsService} from "./models/bets/bets.service";
 
 import * as moment from 'moment';
-import {Bet, IBet} from "./models/bets/bet";
+import {Bet, BetStatus, IBet, IBetStatus} from "./models/bets/bet";
+import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {bootstrapItem} from "@angular/cli/lib/ast-tools";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
   public startDate: string;
   public startRangeDate: string;
@@ -18,15 +20,31 @@ export class AppComponent {
   public dateRange: 'year' | 'month' | 'week' = 'year';
 
   public dateRangeSuper: 'year' | 'month' | 'week' = 'year';
-  public statusSuper: '0' | '1' | '2' = '0';
+  public statusSuper = BetStatus.Lost;
 
-  public statusUberSuper: '0' | '1' | '2' = '0';
+  public statusOptions = Object.assign({}, BetStatus);
+
+  public statusUberSuper = BetStatus.Lost;
 
   public log = [];
   public items = [];
 
-  constructor(private betsService: BetsService) {
+  public betForm: FormGroup;
+
+  public getBetId: number;
+
+  constructor(private betsService: BetsService, private fb: FormBuilder) {
     this.startDate = moment().hour(14).minute(30).add(10, 'minutes').format('YYYY-MM-DDTHH:mm:ss');
+  }
+
+  ngOnInit() {
+    this.betForm = this.fb.group({
+      stake: [null, [Validators.required]],
+      note: [''],
+      status: [BetStatus.Awaiting, [Validators.required]],
+      settles: [this.startDate, [Validators.required]],
+      notify: [false]
+    });
   }
 
   public getFromPast() {
@@ -58,37 +76,91 @@ export class AppComponent {
     });
   }
 
-  public getAllBetsByStatusFromPastRange() {
+  public getAllByStatusFromPastRange() {
     this.items = [];
 
-    this.betsService.getAllBetsByStatusFromPastRange(this.dateRangeSuper, this.stupidStringToStupidSpecificInt(this.statusSuper)).then((items) => {
+    this.betsService.getAllByStatusFromPastRange(this.dateRangeSuper, this.statusSuper).then((items) => {
       this.logItems(items);
       this.log.push(`found ${items.length} bets from last ${this.dateRangeSuper} with status ${this.statusSuper}`);
     });
   }
 
-  public getAllBetsByStatus() {
-    this.betsService.getAllBetsByStatus(this.stupidStringToStupidSpecificInt(this.statusUberSuper)).then((items) => {
+  public getAllByStatus() {
+    this.betsService.getAllByStatus(this.statusUberSuper).then((items) => {
       this.logItems(items);
-      this.log.push(`found ${items.length} bets with status ${this.statusSuper}`);
+      this.log.push(`found ${items.length} bets with status ${this.statusUberSuper}`);
     });
   }
 
-  private stupidStringToStupidSpecificInt(input: '0' | '1' | '2'): 0 | 1 | 2 {
-    switch (input) {
-      case '0':
-        return 0;
-      case '1':
-        return 1;
-      case '2':
-        return 2;
+  public createBet(bet: Bet, isValid: boolean) {
+    if(!isValid) {
+      return;
     }
+
+    const newBet = new Bet(bet);
+
+    this.log.push(`creating new bet: ${JSON.stringify(newBet)}`);
+    this.betsService.add(newBet).then((newBetId: number) => {
+      this.getBetId = newBetId;
+      this.log.push(`created new bet with id: ${newBetId}`);
+      this.betForm.reset({
+        stake: null,
+        note: '',
+        status: BetStatus.Awaiting,
+        settles: this.startDate,
+        notify: false
+      });
+    });
+  }
+
+  public getOne() {
+    this.betsService.getOne(this.getBetId).then((bet: Bet) => {
+      this.logItems([bet]);
+      this.log.push(`got one bet`);
+    });
+  }
+  public getAll() {
+    this.betsService.getAll().then((bets: Bet[]) => {
+      this.logItems(bets);
+      this.log.push(`got all ${bets.length} bets`);
+    });
+  }
+  public update() {
+    this.betsService.update(this.getBetId, this.betForm.value).then((bet) => {
+      this.log.push(`updated bet with id: ${this.getBetId}`);
+    });
+  }
+  public remove() {
+    this.betsService.remove(this.getBetId).then(() => {
+      this.log.push(`removed bet with id: ${this.getBetId}`);
+      this.getBetId = null;
+    })
+  }
+
+  public getInPlayAmount() {
+    this.betsService.getInPlayAmount().then((amount: number) => {
+      this.log.push(`getInPlayAmount: ${amount}`);
+    });
+  }
+
+  public getBalance() {
+    this.betsService.getBalance(this.dateRange).then((amount: number) => {
+      this.log.push(`getBalance: ${amount}`);
+    });
+  }
+
+  public hasAwaiting() {
+    this.betsService.hasAwaiting().then((hasAwaiting: boolean) => {
+      this.log.push(`hasAwaiting: ${hasAwaiting}`);
+    });
   }
 
   private logItems(items: IBet[]) {
     this.items = [];
     this.items = items;
-    console.log(this.items[0], this.items[0].log());
+    if(this.items[0]) {
+      console.log(this.items[0], this.items[0].log());
+    }
   }
 
 }
