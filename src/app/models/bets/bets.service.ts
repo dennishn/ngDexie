@@ -23,6 +23,7 @@ export class BetsService {
 
       const timestamp = moment().unix();
 
+      // endAt will always come from some sort of DatePicker - which returned Dates as formatted strings - fix it!
       if(typeof bet.endAt !== 'number') {
         bet.endAt = moment(bet.endAt).unix();
       }
@@ -30,6 +31,9 @@ export class BetsService {
       // Set created/updated timestamps on creation - hiding "implementation" details from the controllers
       bet.createdAt = timestamp;
       bet.updatedAt = timestamp;
+
+      // Set the notifyAt to next day at 12:00 (24h time) on creation - also hiding "implementation" details from controllers
+      bet.notifyAt = moment.unix(bet.endAt).add(1, 'days').hour(12).minute(0).second(0).millisecond(0).unix();
     });
 
     this.table.hook('updating', (modifications: any, primaryKey: any, obj, transaction) => {

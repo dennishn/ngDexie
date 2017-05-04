@@ -11,6 +11,17 @@ export const BetStatus: IBetStatus = {
     Won: '2'
 };
 
+export interface IBetDateRange {
+    Year: string;
+    Month: string;
+    Week: string;
+}
+export const BetDateRange: IBetDateRange = {
+    Year: 'year',
+    Month: 'month',
+    Week: 'week'
+};
+
 export interface IBet {
     id?: number;
     createdAt: number;
@@ -23,8 +34,6 @@ export interface IBet {
     note: string;
     notify: boolean;
 }
-
-// todo: implement dateRange const ...
 
 export class Bet implements IBet {
     id?: number;
@@ -39,7 +48,7 @@ export class Bet implements IBet {
     notify: boolean;
 
     constructor(
-        data:{
+        data: {
             status?: string,
             createdAt?: number,
             updatedAt?: number,
@@ -69,33 +78,29 @@ export class Bet implements IBet {
             throw new Error(`bet requires a note`);
         }
 
-        // EndAt will always be a number
+        // Dates will always be a number
         if(typeof data.endAt !== 'number') {
-            throw new Error(`endAt must be a number (unix timestamp)`);
+            this.endAt = moment(data.endAt).unix();
+        } else {
+            this.endAt = data.endAt;
+        }
+        if(typeof data.createdAt !== 'number') {
+            this.createdAt = moment(data.createdAt).unix();
+        } else {
+            this.createdAt = data.createdAt;
+        }
+        if(typeof data.updatedAt !== 'number') {
+            this.updatedAt = moment(data.updatedAt).unix();
+        } else {
+            this.updatedAt = data.updatedAt;
+        }
+        if(typeof data.notifyAt !== 'number') {
+            this.notifyAt = moment(data.notifyAt).unix();
+        } else {
+            this.notifyAt = data.notifyAt;
         }
 
         // Rest is optional - either defined or undefined
-        if(data.createdAt) {
-            this.createdAt = data.createdAt;
-        } else {
-            // this.createdAt = moment().unix();
-        }
-        if(data.updatedAt) {
-            this.updatedAt = data.updatedAt;
-        } else {
-            // this.updatedAt = this.createdAt;
-        }
-
-        if(data.endAt) {
-            this.endAt = data.endAt;
-        }
-        if(data.notifyAt) {
-            this.notifyAt = data.notifyAt;
-        } else {
-            // As a user with an awaiting bet I will receive a push notification on 12:00 AM the day after the settlement day
-            this.notifyAt = moment.unix(this.endAt).add(1, 'days').hour(12).unix();
-        }
-
         if(!data.notify) {
             // User has to disable a notification
             this.notify = true;

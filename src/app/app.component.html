@@ -2,9 +2,9 @@
   <label>
     dateRange
     <select [(ngModel)]="dateRange">
-      <option value="year">year</option>
-      <option value="month">month</option>
-      <option value="week">week</option>
+      <option [value]="dateRangeOptions.Year">year</option>
+      <option [value]="dateRangeOptions.Month">month</option>
+      <option [value]="dateRangeOptions.Week">week</option>
     </select>
   </label>
   <label>
@@ -30,9 +30,9 @@
   <label>
     dateRange
     <select [(ngModel)]="dateRangeSuper">
-      <option value="year">year</option>
-      <option value="month">month</option>
-      <option value="week">week</option>
+      <option [value]="dateRangeOptions.Year">year</option>
+      <option [value]="dateRangeOptions.Month">month</option>
+      <option [value]="dateRangeOptions.Week">week</option>
     </select>
   </label>
   <label>

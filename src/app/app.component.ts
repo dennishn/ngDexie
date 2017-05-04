@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {BetsService} from "./models/bets/bets.service";
 
 import * as moment from 'moment';
-import {Bet, BetStatus, IBet, IBetStatus} from "./models/bets/bet";
+import {Bet, BetDateRange, BetStatus, IBet, IBetStatus} from "./models/bets/bet";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {bootstrapItem} from "@angular/cli/lib/ast-tools";
 
@@ -17,12 +17,13 @@ export class AppComponent implements OnInit {
   public startRangeDate: string;
   public endRangeDate: string;
 
-  public dateRange: 'year' | 'month' | 'week' = 'year';
+  public dateRange = BetDateRange.Year;
 
-  public dateRangeSuper: 'year' | 'month' | 'week' = 'year';
+  public dateRangeSuper = BetDateRange.Year;
   public statusSuper = BetStatus.Lost;
 
   public statusOptions = Object.assign({}, BetStatus);
+  public dateRangeOptions = Object.assign({}, BetDateRange);
 
   public statusUberSuper = BetStatus.Lost;
 
@@ -60,7 +61,7 @@ export class AppComponent implements OnInit {
   public getFromPastRange() {
     const startDate = moment(this.startDate).unix();
 
-    this.betsService.getFromPastRange(this.dateRange, startDate).then((items: Bet[]) => {
+    this.betsService.getFromPastRange(<'year' | 'month' | 'week'>this.dateRange, startDate).then((items: Bet[]) => {
       this.logItems(items);
       this.log.push(`found ${items.length} bets from last ${this.dateRange}`);
     });
@@ -79,7 +80,7 @@ export class AppComponent implements OnInit {
   public getAllByStatusFromPastRange() {
     this.items = [];
 
-    this.betsService.getAllByStatusFromPastRange(this.dateRangeSuper, this.statusSuper).then((items) => {
+    this.betsService.getAllByStatusFromPastRange(<'year' | 'month' | 'week'>this.dateRangeSuper, this.statusSuper).then((items) => {
       this.logItems(items);
       this.log.push(`found ${items.length} bets from last ${this.dateRangeSuper} with status ${this.statusSuper}`);
     });
@@ -149,7 +150,7 @@ export class AppComponent implements OnInit {
   }
 
   public getBalance() {
-    this.betsService.getBalance(this.dateRange).then((amount: number) => {
+    this.betsService.getBalance(<'year' | 'month' | 'week'>this.dateRange).then((amount: number) => {
       this.log.push(`getBalance: ${amount}`);
     });
   }
