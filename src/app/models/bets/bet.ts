@@ -13,12 +13,14 @@ export const BetStatus: IBetStatus = {
 
 export interface IBet {
     id?: number;
-    triggerAt: number;
     createdAt: number;
-    endAt: number; // "settles"
+    updatedAt: number;
+    endAt: number;
+    notifyAt: number; // "settles"
     status: string; // 0 lost | 1 awaiting | 2 won
     stake: number;
-    note?: string;
+    gain?: number;
+    note: string;
     notify: boolean;
 }
 
@@ -26,22 +28,26 @@ export interface IBet {
 
 export class Bet implements IBet {
     id?: number;
-    triggerAt: number;
     createdAt: number;
+    updatedAt: number;
     endAt: number;
+    notifyAt: number;
     status: string;
     stake: number;
+    gain?: number;
     note: string;
     notify: boolean;
 
     constructor(
         data:{
             status?: string,
-            triggerAt?: number,
             createdAt?: number,
-            endAt?: number,
+            updatedAt?: number,
+            endAt?: number, // TODO
+            notifyAt?: number,
             id?: number,
             stake: number,
+            gain?: number, // TODO
             note?: string,
             notify?: boolean
         }
@@ -58,21 +64,36 @@ export class Bet implements IBet {
         // Status will always be defined
         this.status = data.status || BetStatus.Awaiting;
 
+        // Note will always be defined
+        if(!data.note || data.note.length < 1) {
+            throw new Error(`bet requires a note`);
+        }
+
+        // EndAt will always be a number
+        if(typeof data.endAt !== 'number') {
+            throw new Error(`endAt must be a number (unix timestamp)`);
+        }
+
         // Rest is optional - either defined or undefined
         if(data.createdAt) {
             this.createdAt = data.createdAt;
         } else {
-            this.triggerAt = moment().unix();
+            // this.createdAt = moment().unix();
+        }
+        if(data.updatedAt) {
+            this.updatedAt = data.updatedAt;
+        } else {
+            // this.updatedAt = this.createdAt;
         }
 
         if(data.endAt) {
             this.endAt = data.endAt;
         }
-        if(data.triggerAt) {
-            this.triggerAt = data.triggerAt;
+        if(data.notifyAt) {
+            this.notifyAt = data.notifyAt;
         } else {
             // As a user with an awaiting bet I will receive a push notification on 12:00 AM the day after the settlement day
-            this.triggerAt = moment.unix(this.endAt).add(1, 'days').hour(12).unix();
+            this.notifyAt = moment.unix(this.endAt).add(1, 'days').hour(12).unix();
         }
 
         if(!data.notify) {

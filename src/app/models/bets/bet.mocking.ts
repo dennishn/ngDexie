@@ -16,9 +16,10 @@ export class BetMockFactory {
             const todaysDate = moment().add(10, 'minutes');
 
             let d: Bet = new Bet({
-                triggerAt: startDate.clone().add(1, 'hours').unix(),
-                createdAt: startDate.clone().subtract(1, 'days').unix(),
+                // createdAt: startDate.clone().subtract(1, 'days').unix(),
+                // updatedAt: startDate.clone().subtract(1, 'days').unix(),
                 endAt: startDate.clone().add(30, 'minutes').unix(),
+                notifyAt: startDate.clone().add(1, 'hours').unix(),
                 status: BetStatus.Awaiting,
                 note: 'Lorem Ipsum for now.',
                 stake: this.getRandomInteger(1, 9999)

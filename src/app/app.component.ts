@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
       stake: [null, [Validators.required]],
       note: [''],
       status: [BetStatus.Awaiting, [Validators.required]],
-      settles: [this.startDate, [Validators.required]],
+      endAt: [this.startDate, [Validators.required]],
       notify: [false]
     });
   }
@@ -97,7 +97,9 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    const newBet = new Bet(bet);
+    const newBet = new Bet(
+        Object.assign({}, bet)
+    );
 
     this.log.push(`creating new bet: ${JSON.stringify(newBet)}`);
     this.betsService.add(newBet).then((newBetId: number) => {
@@ -107,16 +109,18 @@ export class AppComponent implements OnInit {
         stake: null,
         note: '',
         status: BetStatus.Awaiting,
-        settles: this.startDate,
+        endAt: this.startDate,
         notify: false
       });
-    });
+    }).catch((e) => console.warn(e));
   }
 
   public getOne() {
     this.betsService.getOne(this.getBetId).then((bet: Bet) => {
       this.logItems([bet]);
       this.log.push(`got one bet`);
+
+      this.betForm.reset(Object.assign({}, bet, {endAt: moment.unix(bet.endAt).format('YYYY-MM-DDTHH:mm:ss')}));
     });
   }
   public getAll() {
@@ -126,15 +130,16 @@ export class AppComponent implements OnInit {
     });
   }
   public update() {
-    this.betsService.update(this.getBetId, this.betForm.value).then((bet) => {
-      this.log.push(`updated bet with id: ${this.getBetId}`);
-    });
+    this.betsService.update(this.getBetId, this.betForm.value).then((betId: number) => {
+      this.log.push(`updated bet with id: ${betId}`);
+      return this.getOne();
+    }).catch((e) => console.warn(e));
   }
   public remove() {
     this.betsService.remove(this.getBetId).then(() => {
       this.log.push(`removed bet with id: ${this.getBetId}`);
       this.getBetId = null;
-    })
+    });
   }
 
   public getInPlayAmount() {

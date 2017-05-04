@@ -19,6 +19,29 @@ export class BetsService {
     // Map Table entries to classes <3
     this.table.mapToClass(Bet);
 
+    this.table.hook('creating', (primaryKey: any, bet: Bet) => {
+
+      const timestamp = moment().unix();
+
+      if(typeof bet.endAt !== 'number') {
+        bet.endAt = moment(bet.endAt).unix();
+      }
+
+      // Set created/updated timestamps on creation - hiding "implementation" details from the controllers
+      bet.createdAt = timestamp;
+      bet.updatedAt = timestamp;
+    });
+
+    this.table.hook('updating', (modifications: any, primaryKey: any, obj, transaction) => {
+      if(typeof modifications.endAt !== 'number') {
+        modifications.endAt = moment(modifications.endAt).unix();
+      }
+
+      modifications.updatedAt = moment().unix();
+
+      return modifications;
+    });
+
     if(!environment.production) {
       console.info('App running in dev mode - setting up mock data...');
       console.info('Clearing existing Database');
@@ -46,7 +69,7 @@ export class BetsService {
     return this.table.add(data);
   }
 
-  public update(id: number, data: IBet): Promise<Bet> {
+  public update(id: number, data: IBet): Promise<number> {
     return this.table.update(id, data);
   }
 
