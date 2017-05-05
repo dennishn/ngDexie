@@ -157,3 +157,4 @@ export class BetsService {
     return initialStartDate ? moment.unix(initialStartDate) : moment.unix(moment().unix());
   }
 }
+
